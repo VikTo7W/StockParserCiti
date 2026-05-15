@@ -15,14 +15,21 @@ import java.time.OffsetDateTime;
 
 public class StockParser {
 
-    private static void parseStockMarketPrices() throws InterruptedException, URISyntaxException {
-        HttpClient client = HttpClient.newHttpClient();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(new URI("https://query1.finance.yahoo.com/v7/finance/quote?symbols=%5EDJI&crumb=iUc5aA36X%2F9"))
-                .header("Cookie", "")
-                .header("user-agent", "")
-                .GET()
-                .build();
+    private static void parseStockMarketPrices() {
+        HttpClient client;
+        HttpRequest request;
+
+        try {
+            client = HttpClient.newHttpClient();
+            request = HttpRequest.newBuilder()
+                    .uri(new URI("https://query1.finance.yahoo.com/v7/finance/quote?symbols=%5EDJI&crumb=iUc5aA36X%2F9"))
+                    .header("Cookie", "")
+                    .header("user-agent", "")
+                    .GET()
+                    .build();
+        } catch (Exception e) {
+            throw new ParsingException("Error setting up http client or request: ", e);
+        }
 
         RabbitMqConfig config = RabbitMqConfig.fromEnvironment();
 
@@ -44,12 +51,12 @@ public class StockParser {
 
                 System.out.println("Event published.");
                 Thread.sleep(5000);
-            } catch (IOException | InterruptedException e) {
-                Thread.sleep(5000);
+            } catch (Exception e) {
+                throw new ParsingException("Error sending request or publishing into queue: ", e);
             }
         }
     }
-    public static void main(String[] args) throws InterruptedException, URISyntaxException {
+    public static void main(String[] args) {
         parseStockMarketPrices();
     }
 }
